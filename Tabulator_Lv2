@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <link href="https://unpkg.com/tabulator-tables@5.2.3/dist/css/tabulator.min.css" rel="stylesheet">
+
+  </head>
+  <body>
+    <div id="example-table"></div>
+    
+    <!-- CDN -->
+    <script type="text/javascript" src="https://unpkg.com/tabulator-tables@5.2.3/dist/js/tabulator.min.js"></script>
+    
+    <!-- script -->
+    <script>
+document.addEventListener("DOMContentLoaded",pageLoad)
+
+function pageLoad(){
+loadData()
+}
+
+function loadData(){
+google.script.run
+.withSuccessHandler((tabledata)=> {
+//จัดข้อมูลแบบเข้าไปในตารางของ Tabulator
+    var table = new Tabulator("#example-table", {
+        data:tabledata,           //load row data from array
+        layout:"fitColumns",      //fit columns to width of table
+        responsiveLayout:"hide",  //hide columns that dont fit on the table
+        tooltips:true,            //show tool tips on cells
+        addRowPos:"top",          //when adding a new row, add it to the top of the table
+        history:true,             //allow undo and redo actions on the table
+        pagination:"local",       //paginate the data
+        paginationSize:7,         //allow 7 rows per page of data
+        paginationCounter:"rows", //display count of paginated rows in footer
+        movableColumns:true,      //allow column order to be changed
+        initialSort:[             //set the initial sort order of the data
+            {column:"List", dir:"asc"},
+        ],
+    columns:[                 
+      //define the table columns
+        	 	{title:"Id", field:"Id"},
+            {title:"List", field:"List"},
+            {title:"Type", field:"Type"},
+            {title:"Status", field:"Status"},
+            {title:"Company", field:"Company"},
+            {title:"Date", field:"Date"},
+          ],
+});
+})
+.withFailureHandler((er)=>{
+
+})
+.getData()
+}
+</script
+  </body>
+</html>
