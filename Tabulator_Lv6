@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <link href="https://unpkg.com/tabulator-tables@5.2.4/dist/css/tabulator_site.min.css" rel="stylesheet">
+ <?!=include('css-dark')?>
+<!-- Font Awesome -->
+ <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css" integrity="sha512-KfkfwYDsLkIlwQp6LFnl8zNdLGxu9YAA1QvwINks4PhcElQSvqcyVLLD9aMhXd13uQjoXtEKNosOWaZqXgel0g==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  </head>
+  <body>
+    <center>
+        <div class="search-box-outer">
+        <div class="search-box-inner">
+          <label> ค้นหาจากชื่อได้เลยจ้า </label><br/>
+        <input type="text" id="search" placeholder="พิมพ์คำที่ต้องการค้นหา..." style="width: 30%; margin-top:10px;">
+        </div>
+        </div>
+    </center>
+    <div id="example-table" class="dark-data-table"></div>
+    
+    <!-- script -->
+    <script>
+var deleteIcon = function(cell, formatterParams){ 
+return "<i class='fa fa-trash' style='color:red'></i>"};
+
+const elements ={}
+document.addEventListener("DOMContentLoaded",pageLoad)
+
+
+function pageLoad(){
+elements.search = document.getElementById("search")
+elements.search.addEventListener("input",searchData)
+loadData()
+}
+
+function loadData(){
+google.script.run
+.withSuccessHandler((tabledata)=> {
+//จัดข้อมูลแบบเข้าไปในตารางของ Tabulator
+    elements.table = new Tabulator("#example-table", {
+        data:tabledata,           //load row data from array
+        layout:"fitColumns",      //fit columns to width of table
+        responsiveLayout:"hide",  //hide columns that dont fit on the table
+        tooltips:true,            //show tool tips on cells
+        addRowPos:"top",          //when adding a new row, add it to the top of the table
+        history:true,             //allow undo and redo actions on the table
+        pagination:"local",       //paginate the data
+        paginationSize:7,         //allow 7 rows per page of data
+        paginationCounter:"rows", //display count of paginated rows in footer
+        movableColumns:true,      //allow column order to be changed
+        initialSort:[             //set the initial sort order of the data
+            {column:"List", dir:"asc"},
+        ],
+
+    // Pagination ภาษาไทย
+    locale:true,
+    langs:{
+        "th":{
+            "columns":{
+                "name":"Name", 
+            },
+            "data":{
+                "loading":"Loading", 
+                "error":"Error", 
+            },
+            "groups":{ 
+                "item":"รายการ", 
+                "items":"รายการ", 
+            },
+            "pagination":{
+              "page_size":'แสดง', 
+                "page_title":"Show Page",
+                "first":'หน้าแรก', 
+                "first_title":"First Page", 
+                "last":'จบ',
+                "last_title":"Last Page",
+                "prev":'ก่อนหน้า',
+                "prev_title":"Prev Page",
+                "next":'ถัดไป',
+                "next_title":"Next Page",
+                "all":"ทั้งหมด",
+                "counter":{
+                    "showing": "แสดง",
+                    "of": "จาก",
+                    "rows": "แถว",
+                    "pages": "หน้า",
+                }
+            },
+            "headerFilters":{
+                "default":"กรองข้อมูล...", 
+                "columns":{
+                    "รายการ":"กรองรายการ...", 
+                }
+            }
+        }
+    },
+
+    columns:[                 
+      //define the table columns
+        	 	{title:"Id", field:"Id"},
+            {title:"List", field:"List", editor:"input"},
+            {title:"Type", field:"Type"},
+            {title:"Status", field:"Status"},
+            {title:"Company", field:"Company"},
+            {title:"Date", field:"Date"},
+            // {title:'Image', field:"Image",
+            //                 formatter:"image", 
+            //                 formatterParams:{height:"20px",width:"20px",}, 
+            //                 cellClick:function(e, cell){window.open(cell.getValue())}},
+            {title:'Bar Chart', field:"Qty",
+                            formatter:"progress", 
+                            formatterParams:{color:["red", "orange", "#00dd00"]}, 
+                            sorter:"number"},
+            {title:"Condition", field:"Qty",
+                            vertAlign:"middle", hozAlign:"center",
+                            formatter:"traffic", 
+                            formatterParams:{min:0,max:100,color:["red", "orange", "#00dd00"],}},
+            {title:"Image", field:"Image",hozAlign:"center",vertAlign:"middle", formatter:"image", 
+                            cellClick:function(e, cell){const pic = cell.getValue()
+                            Swal.fire({
+                              imageUrl: ''+pic,
+                              imageWidth: 200,
+                              imageHeight: 200,
+                              imageAlt: 'Custom image',
+                            })
+                                },
+                                formatterParams:{
+                                height:"20px",
+                                width:"20px",
+                            }},    
+            // {title:'Icon', formatter:deleteIcon, width:90},                            
+            ],
+})
+
+elements.table.on("cellEdited", function(cell){
+        const id = cell._cell.row.data.Id
+        const field = cell._cell.column.field  
+        const type = cell._cell.column.definition.formatter
+        const val = type ==="tickCross" ? Number(cell._cell.value): cell._cell.value       
+
+          if(["List","Type"].includes(field)){
+            google.script.run
+            .withSuccessHandler(()=>{
+                Swal.fire({
+                position: 'center',
+                icon: 'success',
+                title: 'บันทึกข้อมูลเรียบร้อยแล้ว',
+                showConfirmButton: false,
+                timer: 1500
+              })
+              loadData()
+              })
+            .editCell({id: id, val: val, field: field})
+            }
+
+})
+
+})
+.withFailureHandler((er) => {
+
+})
+.getData()  
+}
+
+function searchData(e){
+  elements.table.setFilter("List", "like", e.target.value)
+}
+
+function clearAlerts(el){
+  setTimeout(()=>{
+    el.textContent = ""
+  },1500)
+}
+
+</script>
+
+    <!-- tabulator js -->
+    <script type="text/javascript" src="https://unpkg.com/tabulator-tables@5.2.3/dist/js/tabulator.min.js"></script>
+    <!-- sweetalert2 CDN -->
+    <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  </body>
+</html>
