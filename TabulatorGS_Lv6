@@ -1,0 +1,43 @@
+function doGet() {
+return HtmlService.createTemplateFromFile("index")
+.evaluate()
+.addMetaTag('viewport', 'width=device-width, initial-scale=1')
+.setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL)
+}
+
+/** เข้าถึง Sheet */
+function getData(){
+var ss = SpreadsheetApp.getActive().getSheets()[0]
+const dataRange = ss.getRange("A1").getDataRegion()
+const data = dataRange.getDisplayValues()
+const headers = data.shift()
+
+/** แมพ data ลงในตัวแปล tableData */
+const tabledata = data.map(r => {
+const tempObject = {}
+headers.forEach((headers,i) => {
+tempObject[headers] = r[i]
+})
+return  tempObject
+})
+    return tabledata
+}
+
+/** @Include Files */
+function include(filename) {
+  return HtmlService.createHtmlOutputFromFile(filename)
+  .getContent();
+}
+
+/** Edit Function */
+function editCell(props){
+const ss = SpreadsheetApp.getActiveSpreadsheet()
+const ws = ss.getSheetByName("Data")
+const idCellMatched =  ws.getRange("A2:A").createTextFinder(props.id).matchEntireCell(true).matchCase(true).findNext()
+const collumnCellMatched =  ws.getRange("1:1").createTextFinder(props.field).matchEntireCell(true).matchCase(true).findNext()
+if(idCellMatched === null) throw new Error("No Matching Record")
+if(collumnCellMatched === null) throw new Error("Invalid")
+const recordRowNumber = idCellMatched.getRow()
+const recordColumnNumber = collumnCellMatched.getColumn()
+ws.getRange(recordRowNumber,recordColumnNumber).setValue(props.val)
+}
